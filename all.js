@@ -6,17 +6,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var canvas = document.getElementById('gameCanvas');
 var ctx = canvas.getContext("2d");
+var shipCanvas = document.getElementById('shipCanvas');
+var shipCtx = shipCanvas.getContext("2d");
+var shipImage = document.getElementById("shipImg");
 
 var Ship = function () {
-  function Ship(radius, color, posX, posY, startAngle, endAngle, speed) {
+  function Ship(posX, posY, speed) {
     _classCallCheck(this, Ship);
 
-    this.radius = radius;
-    this.color = color;
     this.posX = posX;
     this.posY = posY;
-    this.startAngle = startAngle;
-    this.endAngle = endAngle;
     this.speed = speed;
   }
 
@@ -24,10 +23,9 @@ var Ship = function () {
     key: "draw",
     value: function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      shipCtx.drawImage(shipImage, 10, 10);
       ctx.beginPath();
-      ctx.arc(this.posX, this.posY, this.radius, Math.PI * this.startAngle, Math.PI * this.endAngle);
-      ctx.fillStyle = this.color;
-      ctx.fill();
+      ctx.drawImage(shipCanvas, this.posX, this.posY);
       ctx.closePath();
     }
   }, {
@@ -53,14 +51,18 @@ var Ship = function () {
   }, {
     key: "rotateLeft",
     value: function rotateLeft() {
-      this.startAngle -= 0.1;
-      this.endAngle -= 0.1;
+      shipCtx.clearRect(0, 0, shipCanvas.width, shipCanvas.height);
+      shipCtx.translate(shipCanvas.width / 2, shipCanvas.height / 2);
+      shipCtx.rotate(-5 * Math.PI / 180);
+      shipCtx.translate(-shipCanvas.width / 2, -shipCanvas.height / 2);
     }
   }, {
     key: "rotateRight",
     value: function rotateRight() {
-      this.startAngle += 0.1;
-      this.endAngle += 0.1;
+      shipCtx.clearRect(0, 0, shipCanvas.width, shipCanvas.height);
+      shipCtx.translate(shipCanvas.width / 2, shipCanvas.height / 2);
+      shipCtx.rotate(5 * Math.PI / 180);
+      shipCtx.translate(-shipCanvas.width / 2, -shipCanvas.height / 2);
     }
   }]);
 
@@ -69,9 +71,7 @@ var Ship = function () {
 
 // Listen to key press
 
-
-document.onkeydown = function (e) {
-  console.log(e.keyCode);
+document.addEventListener("keydown", function (e) {
   if (e.keyCode == 38) {
     myShip.moveUp();
   } else if (e.keyCode == 40) {
@@ -86,7 +86,7 @@ document.onkeydown = function (e) {
     myShip.rotateRight();
   }
   myShip.draw();
-};
+});
 
-var myShip = new Ship(30, "white", canvas.width / 2, canvas.height / 2, 1, 2.5, 5);
+var myShip = new Ship(canvas.width / 2, canvas.height / 2, 5);
 myShip.draw();

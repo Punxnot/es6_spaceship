@@ -9,8 +9,14 @@ ul, ol{
   list-style: none;
 }
 
-canvas{
+.game-canvas{
   display: block;
   margin: 0 auto;
   background-color: black;
+}
+.ship-canvas{
+  display: none;
+}
+.ready-image{
+  display: none;
 }
