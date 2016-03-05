@@ -9,14 +9,23 @@ var ctx = canvas.getContext("2d");
 var shipCanvas = document.getElementById('shipCanvas');
 var shipCtx = shipCanvas.getContext("2d");
 var shipImage = document.getElementById("shipImg");
-var rotationOn = false;
+var acc = 0.4;
+var dec = 0.9;
+var shipMoving = false;
+var shipRotating = false;
+var times = 0;
+var angleSteps = 0.05;
 
 function angleToVector(ang) {
   return [Math.cos(ang), Math.sin(ang)];
 }
 
+function degreeToRadian(degree) {
+  return degree * Math.PI / 180;
+}
+
 var Ship = function () {
-  function Ship(pos, vel, angle, thrust) {
+  function Ship(pos, vel, angle) {
     _classCallCheck(this, Ship);
 
     this.pos = [pos[0], pos[1]];
@@ -34,13 +43,15 @@ var Ship = function () {
       ctx.beginPath();
       ctx.drawImage(shipCanvas, this.pos[0], this.pos[1]);
       ctx.closePath();
-      shipCtx.clearRect(0, 0, shipCanvas.width, shipCanvas.height);
-      shipCtx.translate(shipCanvas.width / 2, shipCanvas.height / 2);
-      if (rotationOn) {
-        shipCtx.rotate(this.angle * Math.PI / 180);
-      }
-      shipCtx.translate(-shipCanvas.width / 2, -shipCanvas.height / 2);
       shipCtx.beginPath();
+
+      if (shipRotating) {
+        times += 1;
+        shipCtx.clearRect(0, 0, shipCanvas.width, shipCanvas.height);
+        shipCtx.translate(shipCanvas.width / 2, shipCanvas.height / 2);
+        shipCtx.rotate(this.angle);
+        shipCtx.translate(-shipCanvas.width / 2, -shipCanvas.height / 2);
+      }
       shipCtx.drawImage(shipImage, 10, 10);
       shipCtx.closePath();
     }
@@ -49,23 +60,27 @@ var Ship = function () {
     value: function update() {
       this.pos[0] += this.vel[0];
       this.pos[1] += this.vel[1];
-      this.angle = this.angle_vel;
-      this.forward = angleToVector(this.angle);
+      this.forward = angleToVector(this.angle * times);
+      console.log(this.angle * times);
+      if (shipRotating) {
+        this.angle = this.angle_vel;
+      }
       if (this.thrust) {
         this.vel[0] += this.forward[0];
         this.vel[1] += this.forward[1];
       }
-      console.log(this.angle);
+      this.vel[0] *= dec;
+      this.vel[1] *= dec;
     }
   }, {
     key: "turnLeft",
     value: function turnLeft() {
-      this.angle_vel = -3;
+      this.angle_vel -= angleSteps;
     }
   }, {
     key: "turnRight",
     value: function turnRight() {
-      this.angle_vel = 3;
+      this.angle_vel += angleSteps;
     }
   }, {
     key: "thrustersOn",
@@ -87,29 +102,39 @@ var Ship = function () {
 
 document.addEventListener("keydown", function (e) {
   if (e.keyCode == 38) {
-    myShip.thrustersOn();
+    if (!shipMoving) {
+      myShip.thrustersOn();
+      shipMoving = true;
+    }
   } else if (e.keyCode == 65) {
-    rotationOn = true;
-    myShip.turnLeft();
+    if (!shipRotating) {
+      myShip.turnLeft();
+      shipRotating = true;
+    }
   } else if (e.keyCode == 68) {
-    rotationOn = true;
-    myShip.turnRight();
+    if (!shipRotating) {
+      myShip.turnRight();
+      shipRotating = true;
+    }
   }
 });
 
 document.addEventListener("keyup", function (e) {
   if (e.keyCode == 38) {
+    shipMoving = false;
     myShip.thrustersOff();
   } else if (e.keyCode == 65) {
-    rotationOn = false;
+    shipRotating = false;
+    myShip.turnRight();
   } else if (e.keyCode == 68) {
-    rotationOn = false;
+    myShip.turnLeft();
+    shipRotating = false;
   }
 });
 
-var myShip = new Ship([canvas.width / 2, canvas.height / 2], [0, 0], 0, false);
+var myShip = new Ship([canvas.width / 2, canvas.height / 2], [0, 0], 0 * Math.PI / 180);
 
 window.setInterval(function () {
-  myShip.draw();
   myShip.update();
+  myShip.draw();
 }, 60);
