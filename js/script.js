@@ -118,7 +118,10 @@ document.addEventListener("keyup", function(e){
 
 var myShip = new Ship([canvas.width/2, canvas.height/2], [0, 0], 0 * Math.PI / 180);
 
-window.setInterval(function() {
+function animateAll() {
   myShip.update();
   myShip.draw();
-}, 60)
+  requestAnimationFrame(animateAll);
+}
+
+animateAll();
