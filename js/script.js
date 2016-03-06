@@ -5,6 +5,7 @@ const ctx = canvas.getContext("2d");
 const shipCanvas = document.getElementById('shipCanvas');
 const shipCtx = shipCanvas.getContext("2d");
 var shipImage = document.getElementById("shipImg");
+var thrustSound = new Audio('audio/thrust_sound.mp3');
 var acc = 0.4;
 var dec = 0.95;
 var shipMoving = false;
@@ -55,6 +56,7 @@ class ImageInfo {
 var missileInfo = new ImageInfo([10, 10], 50);
 var missileImage = document.getElementById("missileImg");
 var missileLifespan = 80;
+var missileSound = new Audio('audio/missile_sound.mp3');
 var aMissile;
 
 class Ship {
@@ -105,21 +107,21 @@ class Ship {
   thrustersOn() {
     this.thrust = true;
     spritePoint = 90;
+    thrustSound.play();
   }
 
   thrustersOff() {
     this.thrust = false;
     spritePoint = 0;
+    thrustSound.pause();
+    thrustSound.currentTime = 0;
   }
 
   shoot() {
-    console.log("Shoot");
     let missileVel = [this.vel[0] + this.forward[0] * 3, this.vel[1] + this.forward[1] * 3];
     let missilePos = [(this.pos[0] + 1 * this.forward[0]) + 40, (this.pos[1] + 1 * this.forward[1]) + 40];
     this.aMissile = new Missile(missilePos, missileVel, missileImage);
     this.aMissile.draw();
-    console.log("shipPos" + this.pos);
-    console.log("missilePos" + missilePos);
   }
 }
 
@@ -170,6 +172,7 @@ document.addEventListener("keydown", function(e){
     }
   } else if(e.keyCode == 32) {
     myShip.shoot();
+    missileSound.play();
   }
 });
 
