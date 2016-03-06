@@ -21,6 +21,10 @@ function degreeToRadian(degree) {
   return degree * Math.PI / 180;
 }
 
+function mod(n, m) {
+  return ((n % m) + m) % m;
+}
+
 class Ship {
   constructor(pos, vel, angle) {
     this.pos = [pos[0],pos[1]];
@@ -46,8 +50,8 @@ class Ship {
   }
 
   update() {
-    this.pos[0] += this.vel[0];
-    this.pos[1] += this.vel[1];
+    this.pos[0] = mod((this.pos[0] + this.vel[0]), canvas.width);
+    this.pos[1] = mod((this.pos[1] + this.vel[1]), canvas.height);
     this.forward = angleToVector(this.angle);
     this.angle += this.angle_vel;
     if(this.thrust) {
