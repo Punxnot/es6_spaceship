@@ -6,12 +6,13 @@ const shipCanvas = document.getElementById('shipCanvas');
 const shipCtx = shipCanvas.getContext("2d");
 var shipImage = document.getElementById("shipImg");
 var acc = 0.4;
-var dec = 0.9;
+var dec = 0.95;
 var shipMoving = false;
 var shipRotating = false;
 var direction = "";
 var times = 0;
 var angleSteps = 0.05;
+var spritePoint = 0;
 
 function angleToVector(ang) {
   return [Math.cos(ang), Math.sin(ang)];
@@ -40,7 +41,7 @@ class Ship {
     shipCtx.clearRect(0, 0, shipCanvas.width, shipCanvas.height);
     shipCtx.translate(shipCanvas.width/2, shipCanvas.height/2);
     shipCtx.rotate(this.angle);
-    shipCtx.drawImage(shipImage, -40, -40);
+    shipCtx.drawImage(shipImage,spritePoint,0,90,90,-45,-45,90,90);
     shipCtx.restore();
     shipCtx.closePath();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -55,8 +56,8 @@ class Ship {
     this.forward = angleToVector(this.angle);
     this.angle += this.angle_vel;
     if(this.thrust) {
-      this.vel[0] += this.forward[0];
-      this.vel[1] += this.forward[1];
+      this.vel[0] += this.forward[0] * acc;
+      this.vel[1] += this.forward[1] * acc;
     }
     this.vel[0] *= dec;
     this.vel[1] *= dec;
@@ -72,16 +73,18 @@ class Ship {
 
   thrustersOn() {
     this.thrust = true;
+    spritePoint = 90;
   }
 
   thrustersOff() {
     this.thrust = false;
+    spritePoint = 0;
   }
 }
 
 // Listen to key press
 document.addEventListener("keydown", function(e){
-  if(e.keyCode == 38){
+  if(e.keyCode == 87){
     if(!shipMoving) {
       myShip.thrustersOn();
       shipMoving = true;
@@ -102,7 +105,7 @@ document.addEventListener("keydown", function(e){
 });
 
 document.addEventListener("keyup", function(e){
-  if(e.keyCode == 38){
+  if(e.keyCode == 87){
     shipMoving = false;
     myShip.thrustersOff();
   } else if(e.keyCode == 65) {
