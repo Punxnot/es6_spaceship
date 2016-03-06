@@ -13,6 +13,7 @@ var acc = 0.4;
 var dec = 0.9;
 var shipMoving = false;
 var shipRotating = false;
+var direction = "";
 var times = 0;
 var angleSteps = 0.05;
 
@@ -38,33 +39,26 @@ var Ship = function () {
   _createClass(Ship, [{
     key: "draw",
     value: function draw() {
+      shipCtx.beginPath();
+      shipCtx.save();
+      shipCtx.clearRect(0, 0, shipCanvas.width, shipCanvas.height);
+      shipCtx.translate(shipCanvas.width / 2, shipCanvas.height / 2);
+      shipCtx.rotate(this.angle);
+      shipCtx.drawImage(shipImage, -40, -40);
+      shipCtx.restore();
+      shipCtx.closePath();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.save();
       ctx.beginPath();
       ctx.drawImage(shipCanvas, this.pos[0], this.pos[1]);
       ctx.closePath();
-      shipCtx.beginPath();
-
-      if (shipRotating) {
-        times += 1;
-        shipCtx.clearRect(0, 0, shipCanvas.width, shipCanvas.height);
-        shipCtx.translate(shipCanvas.width / 2, shipCanvas.height / 2);
-        shipCtx.rotate(this.angle);
-        shipCtx.translate(-shipCanvas.width / 2, -shipCanvas.height / 2);
-      }
-      shipCtx.drawImage(shipImage, 10, 10);
-      shipCtx.closePath();
     }
   }, {
     key: "update",
     value: function update() {
       this.pos[0] += this.vel[0];
       this.pos[1] += this.vel[1];
-      this.forward = angleToVector(this.angle * times);
-      console.log(this.angle * times);
-      if (shipRotating) {
-        this.angle = this.angle_vel;
-      }
+      this.forward = angleToVector(this.angle);
+      this.angle += this.angle_vel;
       if (this.thrust) {
         this.vel[0] += this.forward[0];
         this.vel[1] += this.forward[1];
@@ -108,11 +102,13 @@ document.addEventListener("keydown", function (e) {
     }
   } else if (e.keyCode == 65) {
     if (!shipRotating) {
+      direction = "left";
       myShip.turnLeft();
       shipRotating = true;
     }
   } else if (e.keyCode == 68) {
     if (!shipRotating) {
+      direction = "right";
       myShip.turnRight();
       shipRotating = true;
     }
@@ -124,9 +120,11 @@ document.addEventListener("keyup", function (e) {
     shipMoving = false;
     myShip.thrustersOff();
   } else if (e.keyCode == 65) {
-    shipRotating = false;
+    direction = "right";
     myShip.turnRight();
+    shipRotating = false;
   } else if (e.keyCode == 68) {
+    direction = "left";
     myShip.turnLeft();
     shipRotating = false;
   }
