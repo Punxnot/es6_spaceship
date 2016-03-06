@@ -54,7 +54,7 @@ class ImageInfo {
 // Missile
 var missileInfo = new ImageInfo([10, 10], 50);
 var missileImage = document.getElementById("missileImg");
-var missileLifespan = 50;
+var missileLifespan = 80;
 var aMissile;
 
 class Ship {
