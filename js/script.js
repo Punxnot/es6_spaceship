@@ -22,9 +22,40 @@ function degreeToRadian(degree) {
   return degree * Math.PI / 180;
 }
 
+// Modulo
 function mod(n, m) {
   return ((n % m) + m) % m;
 }
+
+class ImageInfo {
+  constructor(size, lifespan = null, animated = false) {
+    this.size = size;
+    if(lifespan) {
+      this.lifespan = lifespan;
+    } else {
+      this.lifespan = Infinity;
+    }
+    this.animated = animated;
+  }
+
+  getSize() {
+    return this.size;
+  }
+
+  getLifeSpan() {
+    return this.lifespan;
+  }
+
+  getAnimated() {
+    return this.animated;
+  }
+}
+
+// Missile
+var missileInfo = new ImageInfo([10, 10], 50);
+var missileImage = document.getElementById("missileImg");
+var missileLifespan = 50;
+var aMissile;
 
 class Ship {
   constructor(pos, vel, angle) {
@@ -80,6 +111,42 @@ class Ship {
     this.thrust = false;
     spritePoint = 0;
   }
+
+  shoot() {
+    console.log("Shoot");
+    let missileVel = [this.vel[0] + this.forward[0] * 3, this.vel[1] + this.forward[1] * 3];
+    let missilePos = [(this.pos[0] + 1 * this.forward[0]) + 40, (this.pos[1] + 1 * this.forward[1]) + 40];
+    this.aMissile = new Missile(missilePos, missileVel, missileImage);
+    this.aMissile.draw();
+    console.log("shipPos" + this.pos);
+    console.log("missilePos" + missilePos);
+  }
+}
+
+class Missile {
+  constructor(pos, vel, image) {
+    this.pos = [pos[0], pos[1]];
+    this.vel = [vel[0], vel[1]];
+    this.image = image;
+    this.age = 0;
+  }
+
+  draw() {
+    console.log("Draw missile");
+    ctx.drawImage(this.image, this.pos[0], this.pos[1]);
+  }
+
+  update() {
+    if(this.age < missileLifespan) {
+      this.pos[0] += this.vel[0];
+      this.pos[1] += this.vel[1];
+      this.pos[0] = mod(this.pos[0], canvas.width);
+      this.pos[1] = mod(this.pos[1], canvas.height);
+      this.age += 1;
+    } else {
+      this.pos = [canvas.width, canvas.height];
+    }
+  }
 }
 
 // Listen to key press
@@ -101,6 +168,8 @@ document.addEventListener("keydown", function(e){
       myShip.turnRight();
       shipRotating = true;
     }
+  } else if(e.keyCode == 32) {
+    myShip.shoot();
   }
 });
 
@@ -124,6 +193,10 @@ var myShip = new Ship([canvas.width/2, canvas.height/2], [0, 0], 0 * Math.PI / 1
 function animateAll() {
   myShip.update();
   myShip.draw();
+  if(myShip.aMissile) {
+    myShip.aMissile.draw();
+    myShip.aMissile.update();
+  }
   requestAnimationFrame(animateAll);
 }
 
