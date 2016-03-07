@@ -6,6 +6,7 @@ const shipCanvas = document.getElementById('shipCanvas');
 const shipCtx = shipCanvas.getContext("2d");
 var shipImage = document.getElementById("shipImg");
 var thrustSound = new Audio('audio/thrust_sound.mp3');
+var explosionSound = new Audio('audio/explosion_sound.mp3');
 var acc = 0.4;
 var dec = 0.95;
 var shipMoving = false;
@@ -66,6 +67,10 @@ var missileSound = new Audio('audio/missile_sound.mp3');
 // Asteroid
 var asteroidInfo = new ImageInfo([90, 90]);
 var asteroidImage = document.getElementById("asteroidImg");
+
+// Explosion
+var explosionImage = document.getElementById("explosionImg");
+var explosionInfo = new ImageInfo([128, 128], 24, true);
 
 class Ship {
   constructor(pos, vel, angle, size) {
@@ -148,11 +153,16 @@ class Sprite {
     this.vel = [vel[0], vel[1]];
     this.image = image;
     this.info = info;
+    this.animated = info.getAnimated();
     this.age = 0;
   }
 
   draw() {
-    ctx.drawImage(this.image, this.pos[0], this.pos[1]);
+    if(this.animated) {
+      ctx.drawImage(this.image,this.age*this.getSize()[0],0,this.getSize()[0],this.getSize()[1],this.pos[0],this.pos[1],this.getSize()[0],this.getSize()[1]);
+    } else {
+      ctx.drawImage(this.image, this.pos[0], this.pos[1]);
+    }
   }
 
   update() {
@@ -164,7 +174,6 @@ class Sprite {
       this.age += 1;
     } else {
       this.pos = [canvas.width, canvas.height];
-      // console.log("Missile should dissappear");
     }
   }
 
@@ -192,7 +201,9 @@ function groupCollide(group, otherObj) {
     if(i.collide(otherObj)) {
       var ind = group.indexOf(i);
       group.splice(ind, 1);
-      console.log(group);
+      let explosion = new Sprite(i.getPosition(), [0, 0], explosionImage, explosionInfo);
+      explosionGroup.add(explosion);
+      explosionSound.play();
     }
   }
   if(mySet.length != group.length) {
@@ -264,9 +275,11 @@ function animateAll() {
     rock.draw();
     groupCollide(missiles, rock);
   }
+  for(let explosion of explosionGroup) {
+    explosion.update();
+    explosion.draw();
+  }
   groupCollide(rocks, myShip);
-  console.log("Missiles: " + missiles);
-  console.log("Rocks: " + rocks);
   requestAnimationFrame(animateAll);
 }
 

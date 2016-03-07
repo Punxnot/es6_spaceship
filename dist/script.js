@@ -10,6 +10,7 @@ var shipCanvas = document.getElementById('shipCanvas');
 var shipCtx = shipCanvas.getContext("2d");
 var shipImage = document.getElementById("shipImg");
 var thrustSound = new Audio('audio/thrust_sound.mp3');
+var explosionSound = new Audio('audio/explosion_sound.mp3');
 var acc = 0.4;
 var dec = 0.95;
 var shipMoving = false;
@@ -84,6 +85,10 @@ var missileSound = new Audio('audio/missile_sound.mp3');
 // Asteroid
 var asteroidInfo = new ImageInfo([90, 90]);
 var asteroidImage = document.getElementById("asteroidImg");
+
+// Explosion
+var explosionImage = document.getElementById("explosionImg");
+var explosionInfo = new ImageInfo([128, 128], 24, true);
 
 var Ship = function () {
   function Ship(pos, vel, angle, size) {
@@ -183,13 +188,18 @@ var Sprite = function () {
     this.vel = [vel[0], vel[1]];
     this.image = image;
     this.info = info;
+    this.animated = info.getAnimated();
     this.age = 0;
   }
 
   _createClass(Sprite, [{
     key: "draw",
     value: function draw() {
-      ctx.drawImage(this.image, this.pos[0], this.pos[1]);
+      if (this.animated) {
+        ctx.drawImage(this.image, this.age * this.getSize()[0], 0, this.getSize()[0], this.getSize()[1], this.pos[0], this.pos[1], this.getSize()[0], this.getSize()[1]);
+      } else {
+        ctx.drawImage(this.image, this.pos[0], this.pos[1]);
+      }
     }
   }, {
     key: "update",
@@ -202,7 +212,6 @@ var Sprite = function () {
         this.age += 1;
       } else {
         this.pos = [canvas.width, canvas.height];
-        // console.log("Missile should dissappear");
       }
     }
   }, {
@@ -243,7 +252,9 @@ function groupCollide(group, otherObj) {
       if (i.collide(otherObj)) {
         var ind = group.indexOf(i);
         group.splice(ind, 1);
-        console.log(group);
+        var explosion = new Sprite(i.getPosition(), [0, 0], explosionImage, explosionInfo);
+        explosionGroup.add(explosion);
+        explosionSound.play();
       }
     }
   } catch (err) {
@@ -374,9 +385,33 @@ function animateAll() {
     }
   }
 
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
+
+  try {
+    for (var _iterator4 = explosionGroup[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var explosion = _step4.value;
+
+      explosion.update();
+      explosion.draw();
+    }
+  } catch (err) {
+    _didIteratorError4 = true;
+    _iteratorError4 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion4 && _iterator4.return) {
+        _iterator4.return();
+      }
+    } finally {
+      if (_didIteratorError4) {
+        throw _iteratorError4;
+      }
+    }
+  }
+
   groupCollide(rocks, myShip);
-  console.log("Missiles: " + missiles);
-  console.log("Rocks: " + rocks);
   requestAnimationFrame(animateAll);
 }
 
