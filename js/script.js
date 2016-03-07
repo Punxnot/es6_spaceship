@@ -201,6 +201,7 @@ function groupCollide(group, otherObj) {
     if(i.collide(otherObj)) {
       var ind = group.indexOf(i);
       group.splice(ind, 1);
+      otherObj.age = otherObj.lifespan;
       let explosion = new Sprite(i.getPosition(), [0, 0], explosionImage, explosionInfo);
       explosionGroup.add(explosion);
       explosionSound.play();
@@ -289,6 +290,6 @@ function animateAll() {
 
 setInterval(function() {
   rockSpawner();
-}, 1000)
+}, 1000);
 
 animateAll();
