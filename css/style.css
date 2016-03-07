@@ -14,7 +14,10 @@ ul, ol {
 .game-canvas {
   position: absolute;
   top: 0;
-  left: 0;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+      -ms-transform: translateX(-50%);
+          transform: translateX(-50%);
   background-color: transparent;
 }
 
@@ -24,4 +27,9 @@ ul, ol {
 
 .ready-image {
   display: none;
+}
+
+.space-bg {
+  display: block;
+  margin: 0 auto;
 }

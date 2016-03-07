@@ -71,11 +71,10 @@ var ImageInfo = function () {
 // Missile
 
 
-var missileInfo = new ImageInfo([10, 10], 50);
+var missileInfo = new ImageInfo([10, 10], 80);
 var missileImage = document.getElementById("missileImg");
-var missileLifespan = 80;
 var missileSound = new Audio('audio/missile_sound.mp3');
-var aMissile;
+var missiles = [];
 
 var Ship = function () {
   function Ship(pos, vel, angle) {
@@ -148,8 +147,13 @@ var Ship = function () {
     value: function shoot() {
       var missileVel = [this.vel[0] + this.forward[0] * 3, this.vel[1] + this.forward[1] * 3];
       var missilePos = [this.pos[0] + 1 * this.forward[0] + 40, this.pos[1] + 1 * this.forward[1] + 40];
-      this.aMissile = new Missile(missilePos, missileVel, missileImage);
-      this.aMissile.draw();
+      missiles.push(new Missile(missilePos, missileVel, missileImage, missileInfo));
+      // this.aMissile.draw();
+    }
+  }, {
+    key: "getPosition",
+    value: function getPosition() {
+      return this.pos;
     }
   }]);
 
@@ -157,25 +161,25 @@ var Ship = function () {
 }();
 
 var Missile = function () {
-  function Missile(pos, vel, image) {
+  function Missile(pos, vel, image, info) {
     _classCallCheck(this, Missile);
 
     this.pos = [pos[0], pos[1]];
     this.vel = [vel[0], vel[1]];
     this.image = image;
+    this.info = info;
     this.age = 0;
   }
 
   _createClass(Missile, [{
     key: "draw",
     value: function draw() {
-      console.log("Draw missile");
       ctx.drawImage(this.image, this.pos[0], this.pos[1]);
     }
   }, {
     key: "update",
     value: function update() {
-      if (this.age < missileLifespan) {
+      if (this.age < this.info.getLifeSpan()) {
         this.pos[0] += this.vel[0];
         this.pos[1] += this.vel[1];
         this.pos[0] = mod(this.pos[0], canvas.width);
@@ -237,10 +241,32 @@ var myShip = new Ship([canvas.width / 2, canvas.height / 2], [0, 0], 0 * Math.PI
 function animateAll() {
   myShip.update();
   myShip.draw();
-  if (myShip.aMissile) {
-    myShip.aMissile.draw();
-    myShip.aMissile.update();
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = missiles[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var missile = _step.value;
+
+      missile.update();
+      missile.draw();
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
   }
+
   requestAnimationFrame(animateAll);
 }
 

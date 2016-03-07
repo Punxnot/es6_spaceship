@@ -53,11 +53,10 @@ class ImageInfo {
 }
 
 // Missile
-var missileInfo = new ImageInfo([10, 10], 50);
+var missileInfo = new ImageInfo([10, 10], 80);
 var missileImage = document.getElementById("missileImg");
-var missileLifespan = 80;
 var missileSound = new Audio('audio/missile_sound.mp3');
-var aMissile;
+var missiles = [];
 
 class Ship {
   constructor(pos, vel, angle) {
@@ -120,26 +119,30 @@ class Ship {
   shoot() {
     let missileVel = [this.vel[0] + this.forward[0] * 3, this.vel[1] + this.forward[1] * 3];
     let missilePos = [(this.pos[0] + 1 * this.forward[0]) + 40, (this.pos[1] + 1 * this.forward[1]) + 40];
-    this.aMissile = new Missile(missilePos, missileVel, missileImage);
-    this.aMissile.draw();
+    missiles.push(new Missile(missilePos, missileVel, missileImage, missileInfo));
+    // this.aMissile.draw();
+  }
+
+  getPosition() {
+    return this.pos;
   }
 }
 
 class Missile {
-  constructor(pos, vel, image) {
+  constructor(pos, vel, image, info) {
     this.pos = [pos[0], pos[1]];
     this.vel = [vel[0], vel[1]];
     this.image = image;
+    this.info = info;
     this.age = 0;
   }
 
   draw() {
-    console.log("Draw missile");
     ctx.drawImage(this.image, this.pos[0], this.pos[1]);
   }
 
   update() {
-    if(this.age < missileLifespan) {
+    if(this.age < this.info.getLifeSpan()) {
       this.pos[0] += this.vel[0];
       this.pos[1] += this.vel[1];
       this.pos[0] = mod(this.pos[0], canvas.width);
@@ -196,9 +199,9 @@ var myShip = new Ship([canvas.width/2, canvas.height/2], [0, 0], 0 * Math.PI / 1
 function animateAll() {
   myShip.update();
   myShip.draw();
-  if(myShip.aMissile) {
-    myShip.aMissile.draw();
-    myShip.aMissile.update();
+  for(let missile of missiles) {
+    missile.update();
+    missile.draw();
   }
   requestAnimationFrame(animateAll);
 }
