@@ -15,8 +15,8 @@ var times = 0;
 var angleSteps = 0.05;
 var spritePoint = 0;
 var explosionGroup = new Set([]);
-var rocks = new Set([]);
-var sampleRock = null;
+var rocks = [];
+var missiles = [];
 
 function angleToVector(ang) {
   return [Math.cos(ang), Math.sin(ang)];
@@ -62,7 +62,6 @@ class ImageInfo {
 var missileInfo = new ImageInfo([10, 10], 80);
 var missileImage = document.getElementById("missileImg");
 var missileSound = new Audio('audio/missile_sound.mp3');
-var missiles = [];
 
 // Asteroid
 var asteroidInfo = new ImageInfo([90, 90]);
@@ -130,7 +129,8 @@ class Ship {
   shoot() {
     let missileVel = [this.vel[0] + this.forward[0] * 3, this.vel[1] + this.forward[1] * 3];
     let missilePos = [(this.pos[0] + 1 * this.forward[0]) + 40, (this.pos[1] + 1 * this.forward[1]) + 40];
-    missiles.push(new Sprite(missilePos, missileVel, missileImage, missileInfo));
+    let myMissile = new Sprite(missilePos, missileVel, missileImage, missileInfo);
+    missiles.push(myMissile);
   }
 
   getPosition() {
@@ -164,6 +164,7 @@ class Sprite {
       this.age += 1;
     } else {
       this.pos = [canvas.width, canvas.height];
+      // console.log("Missile should dissappear");
     }
   }
 
@@ -191,6 +192,7 @@ function groupCollide(group, otherObj) {
     if(i.collide(otherObj)) {
       var ind = group.indexOf(i);
       group.splice(ind, 1);
+      console.log(group);
     }
   }
   if(mySet.length != group.length) {
@@ -204,8 +206,7 @@ function rockSpawner() {
   let rockPos = [100, 100];
   let rockVel = [0, 0];
   let myRock = new Sprite(rockPos, rockVel, asteroidImage, asteroidInfo);
-  rocks.add(myRock);
-  sampleRock = myRock;
+  rocks.push(myRock);
 }
 
 // Listen to key press
@@ -249,24 +250,23 @@ document.addEventListener("keyup", function(e){
 });
 
 var myShip = new Ship([canvas.width/2, canvas.height/2], [0, 0], 0 * Math.PI / 180, [90, 90]);
-var sampleRock = rocks[0];
+
 function animateAll() {
   myShip.update();
   myShip.draw();
   for(let missile of missiles) {
     missile.update();
     missile.draw();
+    groupCollide(rocks, missile);
   }
-  // for(let rock of rocks) {
-  //   rock.update();
-  //   rock.draw();
-  // }
-  sampleRock.update();
-  sampleRock.draw();
-  if(sampleRock.collide(myShip)) {
-    console.log("Collision detected!");
+  for(let rock of rocks) {
+    rock.update();
+    rock.draw();
+    groupCollide(missiles, rock);
   }
-  // console.log(distance(myShip.getPosition(), sampleRock.getPosition()));
+  groupCollide(rocks, myShip);
+  console.log("Missiles: " + missiles);
+  console.log("Rocks: " + rocks);
   requestAnimationFrame(animateAll);
 }
 
