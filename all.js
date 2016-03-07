@@ -18,6 +18,9 @@ var direction = "";
 var times = 0;
 var angleSteps = 0.05;
 var spritePoint = 0;
+var explosionGroup = new Set([]);
+var rocks = new Set([]);
+var sampleRock = null;
 
 function angleToVector(ang) {
   return [Math.cos(ang), Math.sin(ang)];
@@ -27,9 +30,12 @@ function degreeToRadian(degree) {
   return degree * Math.PI / 180;
 }
 
-// Modulo
-function mod(n, m) {
+function modulo(n, m) {
   return (n % m + m) % m;
+}
+
+function distance(p, q) {
+  return Math.sqrt(Math.pow(p[0] - q[0], 2) + Math.pow(p[1] - q[1], 2));
 }
 
 var ImageInfo = function () {
@@ -76,13 +82,18 @@ var missileImage = document.getElementById("missileImg");
 var missileSound = new Audio('audio/missile_sound.mp3');
 var missiles = [];
 
+// Asteroid
+var asteroidInfo = new ImageInfo([90, 90]);
+var asteroidImage = document.getElementById("asteroidImg");
+
 var Ship = function () {
-  function Ship(pos, vel, angle) {
+  function Ship(pos, vel, angle, size) {
     _classCallCheck(this, Ship);
 
     this.pos = [pos[0], pos[1]];
     this.vel = [vel[0], vel[1]];
     this.angle = angle;
+    this.size = size;
     this.angle_vel = 0;
     this.thrust = false;
   }
@@ -106,8 +117,8 @@ var Ship = function () {
   }, {
     key: "update",
     value: function update() {
-      this.pos[0] = mod(this.pos[0] + this.vel[0], canvas.width);
-      this.pos[1] = mod(this.pos[1] + this.vel[1], canvas.height);
+      this.pos[0] = modulo(this.pos[0] + this.vel[0], canvas.width);
+      this.pos[1] = modulo(this.pos[1] + this.vel[1], canvas.height);
       this.forward = angleToVector(this.angle);
       this.angle += this.angle_vel;
       if (this.thrust) {
@@ -147,22 +158,26 @@ var Ship = function () {
     value: function shoot() {
       var missileVel = [this.vel[0] + this.forward[0] * 3, this.vel[1] + this.forward[1] * 3];
       var missilePos = [this.pos[0] + 1 * this.forward[0] + 40, this.pos[1] + 1 * this.forward[1] + 40];
-      missiles.push(new Missile(missilePos, missileVel, missileImage, missileInfo));
-      // this.aMissile.draw();
+      missiles.push(new Sprite(missilePos, missileVel, missileImage, missileInfo));
     }
   }, {
     key: "getPosition",
     value: function getPosition() {
       return this.pos;
     }
+  }, {
+    key: "getSize",
+    value: function getSize() {
+      return this.size;
+    }
   }]);
 
   return Ship;
 }();
 
-var Missile = function () {
-  function Missile(pos, vel, image, info) {
-    _classCallCheck(this, Missile);
+var Sprite = function () {
+  function Sprite(pos, vel, image, info) {
+    _classCallCheck(this, Sprite);
 
     this.pos = [pos[0], pos[1]];
     this.vel = [vel[0], vel[1]];
@@ -171,7 +186,7 @@ var Missile = function () {
     this.age = 0;
   }
 
-  _createClass(Missile, [{
+  _createClass(Sprite, [{
     key: "draw",
     value: function draw() {
       ctx.drawImage(this.image, this.pos[0], this.pos[1]);
@@ -182,21 +197,84 @@ var Missile = function () {
       if (this.age < this.info.getLifeSpan()) {
         this.pos[0] += this.vel[0];
         this.pos[1] += this.vel[1];
-        this.pos[0] = mod(this.pos[0], canvas.width);
-        this.pos[1] = mod(this.pos[1], canvas.height);
+        this.pos[0] = modulo(this.pos[0], canvas.width);
+        this.pos[1] = modulo(this.pos[1], canvas.height);
         this.age += 1;
       } else {
         this.pos = [canvas.width, canvas.height];
       }
     }
+  }, {
+    key: "getSize",
+    value: function getSize() {
+      return this.info.getSize();
+    }
+  }, {
+    key: "getPosition",
+    value: function getPosition() {
+      return this.pos;
+    }
+  }, {
+    key: "collide",
+    value: function collide(otherObj) {
+      // To do: calculate radius, replace size with radius;
+      if (distance(this.getPosition(), otherObj.getPosition()) <= this.getSize()[0]) {
+        return true;
+      } else {
+        return false;
+      }
+    }
   }]);
 
-  return Missile;
+  return Sprite;
 }();
 
+function groupCollide(group, otherObj) {
+  var mySet = new Set(group);
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = mySet[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var i = _step.value;
+
+      if (i.collide(otherObj)) {
+        var ind = group.indexOf(i);
+        group.splice(ind, 1);
+      }
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  if (mySet.length != group.length) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function rockSpawner() {
+  var rockPos = [100, 100];
+  var rockVel = [0, 0];
+  var myRock = new Sprite(rockPos, rockVel, asteroidImage, asteroidInfo);
+  rocks.add(myRock);
+  sampleRock = myRock;
+}
+
 // Listen to key press
-
-
 document.addEventListener("keydown", function (e) {
   if (e.keyCode == 87) {
     if (!shipMoving) {
@@ -236,38 +314,50 @@ document.addEventListener("keyup", function (e) {
   }
 });
 
-var myShip = new Ship([canvas.width / 2, canvas.height / 2], [0, 0], 0 * Math.PI / 180);
-
+var myShip = new Ship([canvas.width / 2, canvas.height / 2], [0, 0], 0 * Math.PI / 180, [90, 90]);
+var sampleRock = rocks[0];
 function animateAll() {
   myShip.update();
   myShip.draw();
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
 
   try {
-    for (var _iterator = missiles[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var missile = _step.value;
+    for (var _iterator2 = missiles[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var missile = _step2.value;
 
       missile.update();
       missile.draw();
     }
+    // for(let rock of rocks) {
+    //   rock.update();
+    //   rock.draw();
+    // }
   } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
+      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+        _iterator2.return();
       }
     } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
+      if (_didIteratorError2) {
+        throw _iteratorError2;
       }
     }
   }
 
+  sampleRock.update();
+  sampleRock.draw();
+  if (sampleRock.collide(myShip)) {
+    console.log("Collision detected!");
+  }
+  // console.log(distance(myShip.getPosition(), sampleRock.getPosition()));
   requestAnimationFrame(animateAll);
 }
+
+rockSpawner();
 
 animateAll();

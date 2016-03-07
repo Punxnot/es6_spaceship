@@ -14,6 +14,9 @@ var direction = "";
 var times = 0;
 var angleSteps = 0.05;
 var spritePoint = 0;
+var explosionGroup = new Set([]);
+var rocks = new Set([]);
+var sampleRock = null;
 
 function angleToVector(ang) {
   return [Math.cos(ang), Math.sin(ang)];
@@ -23,9 +26,12 @@ function degreeToRadian(degree) {
   return degree * Math.PI / 180;
 }
 
-// Modulo
-function mod(n, m) {
+function modulo(n, m) {
   return ((n % m) + m) % m;
+}
+
+function distance(p, q) {
+  return Math.sqrt(Math.pow(p[0] - q[0], 2) + Math.pow(p[1] - q[1], 2));
 }
 
 class ImageInfo {
@@ -58,11 +64,16 @@ var missileImage = document.getElementById("missileImg");
 var missileSound = new Audio('audio/missile_sound.mp3');
 var missiles = [];
 
+// Asteroid
+var asteroidInfo = new ImageInfo([90, 90]);
+var asteroidImage = document.getElementById("asteroidImg");
+
 class Ship {
-  constructor(pos, vel, angle) {
+  constructor(pos, vel, angle, size) {
     this.pos = [pos[0],pos[1]];
     this.vel = [vel[0],vel[1]];
     this.angle = angle;
+    this.size = size;
     this.angle_vel = 0;
     this.thrust = false;
   }
@@ -83,8 +94,8 @@ class Ship {
   }
 
   update() {
-    this.pos[0] = mod((this.pos[0] + this.vel[0]), canvas.width);
-    this.pos[1] = mod((this.pos[1] + this.vel[1]), canvas.height);
+    this.pos[0] = modulo((this.pos[0] + this.vel[0]), canvas.width);
+    this.pos[1] = modulo((this.pos[1] + this.vel[1]), canvas.height);
     this.forward = angleToVector(this.angle);
     this.angle += this.angle_vel;
     if(this.thrust) {
@@ -119,16 +130,19 @@ class Ship {
   shoot() {
     let missileVel = [this.vel[0] + this.forward[0] * 3, this.vel[1] + this.forward[1] * 3];
     let missilePos = [(this.pos[0] + 1 * this.forward[0]) + 40, (this.pos[1] + 1 * this.forward[1]) + 40];
-    missiles.push(new Missile(missilePos, missileVel, missileImage, missileInfo));
-    // this.aMissile.draw();
+    missiles.push(new Sprite(missilePos, missileVel, missileImage, missileInfo));
   }
 
   getPosition() {
     return this.pos;
   }
+
+  getSize() {
+    return this.size;
+  }
 }
 
-class Missile {
+class Sprite {
   constructor(pos, vel, image, info) {
     this.pos = [pos[0], pos[1]];
     this.vel = [vel[0], vel[1]];
@@ -145,13 +159,53 @@ class Missile {
     if(this.age < this.info.getLifeSpan()) {
       this.pos[0] += this.vel[0];
       this.pos[1] += this.vel[1];
-      this.pos[0] = mod(this.pos[0], canvas.width);
-      this.pos[1] = mod(this.pos[1], canvas.height);
+      this.pos[0] = modulo(this.pos[0], canvas.width);
+      this.pos[1] = modulo(this.pos[1], canvas.height);
       this.age += 1;
     } else {
       this.pos = [canvas.width, canvas.height];
     }
   }
+
+  getSize() {
+    return this.info.getSize();
+  }
+
+  getPosition() {
+    return this.pos;
+  }
+
+  collide(otherObj) {
+    // To do: calculate radius, replace size with radius;
+    if(distance(this.getPosition(), otherObj.getPosition()) <= this.getSize()[0]) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+function groupCollide(group, otherObj) {
+  var mySet = new Set(group);
+  for(let i of mySet) {
+    if(i.collide(otherObj)) {
+      var ind = group.indexOf(i);
+      group.splice(ind, 1);
+    }
+  }
+  if(mySet.length != group.length) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function rockSpawner() {
+  let rockPos = [100, 100];
+  let rockVel = [0, 0];
+  let myRock = new Sprite(rockPos, rockVel, asteroidImage, asteroidInfo);
+  rocks.add(myRock);
+  sampleRock = myRock;
 }
 
 // Listen to key press
@@ -194,8 +248,8 @@ document.addEventListener("keyup", function(e){
   }
 });
 
-var myShip = new Ship([canvas.width/2, canvas.height/2], [0, 0], 0 * Math.PI / 180);
-
+var myShip = new Ship([canvas.width/2, canvas.height/2], [0, 0], 0 * Math.PI / 180, [90, 90]);
+var sampleRock = rocks[0];
 function animateAll() {
   myShip.update();
   myShip.draw();
@@ -203,7 +257,19 @@ function animateAll() {
     missile.update();
     missile.draw();
   }
+  // for(let rock of rocks) {
+  //   rock.update();
+  //   rock.draw();
+  // }
+  sampleRock.update();
+  sampleRock.draw();
+  if(sampleRock.collide(myShip)) {
+    console.log("Collision detected!");
+  }
+  // console.log(distance(myShip.getPosition(), sampleRock.getPosition()));
   requestAnimationFrame(animateAll);
 }
+
+rockSpawner();
 
 animateAll();
