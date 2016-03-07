@@ -280,10 +280,14 @@ function groupCollide(group, otherObj) {
 }
 
 function rockSpawner() {
-  var rockPos = [100, 100];
-  var rockVel = [0, 0];
+  var rockPos = [Math.floor(Math.random() * canvas.width) + 1, Math.floor(Math.random() * canvas.height) + 1];
+  var rockVel = [0.3, 0.3];
   var myRock = new Sprite(rockPos, rockVel, asteroidImage, asteroidInfo);
-  rocks.push(myRock);
+  if (rocks.length < 6) {
+    if (distance(rockPos, myShip.getPosition()) > myShip.getSize()[0] * 1.5) {
+      rocks.push(myRock);
+    }
+  }
 }
 
 // Listen to key press
@@ -415,6 +419,8 @@ function animateAll() {
   requestAnimationFrame(animateAll);
 }
 
-rockSpawner();
+setInterval(function () {
+  rockSpawner();
+}, 1000);
 
 animateAll();
