@@ -18,8 +18,12 @@ var spritePoint = 0;
 var explosionGroup = new Set([]);
 var rocks = [];
 var missiles = [];
-const score = 0;
-const lives = 3;
+
+var score = 0;
+var lives = 3;
+var scoreContainer = document.getElementById("scoreContainer");
+var livesContainer = document.getElementById("livesContainer");
+livesContainer.innerHTML = lives;
 
 function angleToVector(ang) {
   return [Math.cos(ang), Math.sin(ang)];
@@ -211,21 +215,44 @@ class Sprite {
 
 function groupCollide(group, otherObj) {
   var mySet = new Set(group);
+  var count = 0;
   for(let i of mySet) {
     if(i.collide(otherObj)) {
-      var ind = group.indexOf(i);
+      let ind = group.indexOf(i);
       group.splice(ind, 1);
       otherObj.age = otherObj.lifespan;
       let explosion = new Sprite(i.getPosition(), [0, 0], explosionImage, explosionInfo);
       explosionGroup.add(explosion);
       explosionSound.play();
+      if(mySet.size != group.length) {
+        count += 1;
+      }
     }
   }
-  if(mySet.length != group.length) {
+  // if(mySet.size != group.length) {
+  //   return true;
+  //   console.log("True!");
+  // } else {
+  //   return false;
+  // }
+  if(count > 0) {
     return true;
   } else {
     return false;
   }
+}
+
+function groupGroupCollide(group1, group2) {
+  var count = 0;
+  var set1 = new Set(group1);
+  for(let i of set1) {
+    if(groupCollide(group2, i)) {
+      count += 1;
+      let ind = group1.indexOf(i);
+      group1.splice(ind, 1);
+    }
+  }
+  return count;
 }
 
 function rockSpawner() {
@@ -290,18 +317,27 @@ function animateAll() {
   for(let missile of missiles) {
     missile.update();
     missile.draw();
-    groupCollide(rocks, missile);
+    // groupCollide(rocks, missile);
   }
   for(let rock of rocks) {
     rock.update();
     rock.draw();
-    groupCollide(missiles, rock);
+    // groupCollide(missiles, rock);
   }
   for(let explosion of explosionGroup) {
     explosion.update();
     explosion.draw();
   }
-  groupCollide(rocks, myShip);
+  if(groupCollide(rocks, myShip)) {
+    lives -= 1;
+    livesContainer.innerHTML = lives;
+  }
+
+  // groupGroupCollide(rocks, missiles);
+
+  score += groupGroupCollide(rocks, missiles);
+  scoreContainer.innerHTML = score;
+
   requestAnimationFrame(animateAll);
 }
 

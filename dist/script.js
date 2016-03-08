@@ -22,8 +22,12 @@ var spritePoint = 0;
 var explosionGroup = new Set([]);
 var rocks = [];
 var missiles = [];
+
 var score = 0;
 var lives = 3;
+var scoreContainer = document.getElementById("scoreContainer");
+var livesContainer = document.getElementById("livesContainer");
+livesContainer.innerHTML = lives;
 
 function angleToVector(ang) {
   return [Math.cos(ang), Math.sin(ang)];
@@ -257,6 +261,7 @@ var Sprite = function () {
 
 function groupCollide(group, otherObj) {
   var mySet = new Set(group);
+  var count = 0;
   var _iteratorNormalCompletion = true;
   var _didIteratorError = false;
   var _iteratorError = undefined;
@@ -272,8 +277,17 @@ function groupCollide(group, otherObj) {
         var explosion = new Sprite(i.getPosition(), [0, 0], explosionImage, explosionInfo);
         explosionGroup.add(explosion);
         explosionSound.play();
+        if (mySet.size != group.length) {
+          count += 1;
+        }
       }
     }
+    // if(mySet.size != group.length) {
+    //   return true;
+    //   console.log("True!");
+    // } else {
+    //   return false;
+    // }
   } catch (err) {
     _didIteratorError = true;
     _iteratorError = err;
@@ -289,11 +303,46 @@ function groupCollide(group, otherObj) {
     }
   }
 
-  if (mySet.length != group.length) {
+  if (count > 0) {
     return true;
   } else {
     return false;
   }
+}
+
+function groupGroupCollide(group1, group2) {
+  var count = 0;
+  var set1 = new Set(group1);
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
+
+  try {
+    for (var _iterator2 = set1[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var i = _step2.value;
+
+      if (groupCollide(group2, i)) {
+        count += 1;
+        var ind = group1.indexOf(i);
+        group1.splice(ind, 1);
+      }
+    }
+  } catch (err) {
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+        _iterator2.return();
+      }
+    } finally {
+      if (_didIteratorError2) {
+        throw _iteratorError2;
+      }
+    }
+  }
+
+  return count;
 }
 
 function rockSpawner() {
@@ -355,44 +404,17 @@ var myShip = new Ship([canvas.width / 2, canvas.height / 2], [0, 0], 0 * Math.PI
 function animateAll() {
   myShip.update();
   myShip.draw();
-  var _iteratorNormalCompletion2 = true;
-  var _didIteratorError2 = false;
-  var _iteratorError2 = undefined;
-
-  try {
-    for (var _iterator2 = missiles[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-      var missile = _step2.value;
-
-      missile.update();
-      missile.draw();
-      groupCollide(rocks, missile);
-    }
-  } catch (err) {
-    _didIteratorError2 = true;
-    _iteratorError2 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion2 && _iterator2.return) {
-        _iterator2.return();
-      }
-    } finally {
-      if (_didIteratorError2) {
-        throw _iteratorError2;
-      }
-    }
-  }
-
   var _iteratorNormalCompletion3 = true;
   var _didIteratorError3 = false;
   var _iteratorError3 = undefined;
 
   try {
-    for (var _iterator3 = rocks[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var rock = _step3.value;
+    for (var _iterator3 = missiles[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var missile = _step3.value;
 
-      rock.update();
-      rock.draw();
-      groupCollide(missiles, rock);
+      missile.update();
+      missile.draw();
+      // groupCollide(rocks, missile);
     }
   } catch (err) {
     _didIteratorError3 = true;
@@ -414,11 +436,12 @@ function animateAll() {
   var _iteratorError4 = undefined;
 
   try {
-    for (var _iterator4 = explosionGroup[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-      var explosion = _step4.value;
+    for (var _iterator4 = rocks[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var rock = _step4.value;
 
-      explosion.update();
-      explosion.draw();
+      rock.update();
+      rock.draw();
+      // groupCollide(missiles, rock);
     }
   } catch (err) {
     _didIteratorError4 = true;
@@ -435,7 +458,42 @@ function animateAll() {
     }
   }
 
-  groupCollide(rocks, myShip);
+  var _iteratorNormalCompletion5 = true;
+  var _didIteratorError5 = false;
+  var _iteratorError5 = undefined;
+
+  try {
+    for (var _iterator5 = explosionGroup[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+      var explosion = _step5.value;
+
+      explosion.update();
+      explosion.draw();
+    }
+  } catch (err) {
+    _didIteratorError5 = true;
+    _iteratorError5 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion5 && _iterator5.return) {
+        _iterator5.return();
+      }
+    } finally {
+      if (_didIteratorError5) {
+        throw _iteratorError5;
+      }
+    }
+  }
+
+  if (groupCollide(rocks, myShip)) {
+    lives -= 1;
+    livesContainer.innerHTML = lives;
+  }
+
+  // groupGroupCollide(rocks, missiles);
+
+  score += groupGroupCollide(rocks, missiles);
+  scoreContainer.innerHTML = score;
+
   requestAnimationFrame(animateAll);
 }
 
