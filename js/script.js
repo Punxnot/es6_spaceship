@@ -18,6 +18,8 @@ var spritePoint = 0;
 var explosionGroup = new Set([]);
 var rocks = [];
 var missiles = [];
+const score = 0;
+const lives = 3;
 
 function angleToVector(ang) {
   return [Math.cos(ang), Math.sin(ang)];
@@ -229,6 +231,9 @@ function groupCollide(group, otherObj) {
 function rockSpawner() {
   let rockPos = [Math.floor(Math.random() * canvas.width) + 1, Math.floor(Math.random() * canvas.height) + 1];
   let rockVel = [0.3, 0.3];
+  // Randomly choose value: [1, -1][Math.floor(Math.random() * 2)]
+  rockVel[0] = ([1, -1][Math.floor(Math.random() * 2)]) * rockVel[0];
+  rockVel[1] = ([1, -1][Math.floor(Math.random() * 2)]) * rockVel[1];
   let myRock = new Sprite(rockPos, rockVel, asteroidImage, asteroidInfo);
   if(rocks.length < 6) {
     if(distance(rockPos, myShip.getPosition()) > myShip.getSize()[0]*1.5) {
