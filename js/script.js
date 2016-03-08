@@ -145,6 +145,12 @@ class Ship {
   getSize() {
     return this.size;
   }
+
+  getCenter() {
+    let x = this.pos[0] + this.getSize()[0] / 2;
+    let y = this.pos[1] + this.getSize()[1] / 2;
+    return [x, y];
+  }
 }
 
 class Sprite {
@@ -185,9 +191,15 @@ class Sprite {
     return this.pos;
   }
 
+  getCenter() {
+    let x = this.pos[0] + this.getSize()[0] / 2;
+    let y = this.pos[1] + this.getSize()[1] / 2;
+    return [x, y];
+  }
+
   collide(otherObj) {
     // To do: calculate radius, replace size with radius;
-    if(distance(this.getPosition(), otherObj.getPosition()) <= this.getSize()[0]) {
+    if(distance(this.getCenter(), otherObj.getCenter()) <= (this.getSize()[0] + otherObj.getSize()[0])/2) {
       return true;
     } else {
       return false;

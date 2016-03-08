@@ -175,6 +175,13 @@ var Ship = function () {
     value: function getSize() {
       return this.size;
     }
+  }, {
+    key: "getCenter",
+    value: function getCenter() {
+      var x = this.pos[0] + this.getSize()[0] / 2;
+      var y = this.pos[1] + this.getSize()[1] / 2;
+      return [x, y];
+    }
   }]);
 
   return Ship;
@@ -225,10 +232,17 @@ var Sprite = function () {
       return this.pos;
     }
   }, {
+    key: "getCenter",
+    value: function getCenter() {
+      var x = this.pos[0] + this.getSize()[0] / 2;
+      var y = this.pos[1] + this.getSize()[1] / 2;
+      return [x, y];
+    }
+  }, {
     key: "collide",
     value: function collide(otherObj) {
       // To do: calculate radius, replace size with radius;
-      if (distance(this.getPosition(), otherObj.getPosition()) <= this.getSize()[0]) {
+      if (distance(this.getCenter(), otherObj.getCenter()) <= (this.getSize()[0] + otherObj.getSize()[0]) / 2) {
         return true;
       } else {
         return false;
