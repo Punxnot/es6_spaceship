@@ -18,12 +18,12 @@ var spritePoint = 0;
 var explosionGroup = new Set([]);
 var rocks = [];
 var missiles = [];
-
+var started = true;
 var score = 0;
 var lives = 3;
 var scoreContainer = document.getElementById("scoreContainer");
 var livesContainer = document.getElementById("livesContainer");
-livesContainer.innerHTML = lives;
+livesContainer.innerHTML = "Lives: " + lives;
 
 function angleToVector(ang) {
   return [Math.cos(ang), Math.sin(ang)];
@@ -229,12 +229,6 @@ function groupCollide(group, otherObj) {
       }
     }
   }
-  // if(mySet.size != group.length) {
-  //   return true;
-  //   console.log("True!");
-  // } else {
-  //   return false;
-  // }
   if(count > 0) {
     return true;
   } else {
@@ -259,10 +253,10 @@ function rockSpawner() {
   let rockPos = [Math.floor(Math.random() * canvas.width) + 1, Math.floor(Math.random() * canvas.height) + 1];
   let rockVel = [0.3, 0.3];
   // Randomly choose value: [1, -1][Math.floor(Math.random() * 2)]
-  rockVel[0] = ([1, -1][Math.floor(Math.random() * 2)]) * rockVel[0];
-  rockVel[1] = ([1, -1][Math.floor(Math.random() * 2)]) * rockVel[1];
+  rockVel[0] = ([1, -1][Math.floor(Math.random() * 2)]) * (rockVel[0] + 0.07 * score);
+  rockVel[1] = ([1, -1][Math.floor(Math.random() * 2)]) * (rockVel[1] + 0.07 * score);
   let myRock = new Sprite(rockPos, rockVel, asteroidImage, asteroidInfo);
-  if(rocks.length < 6) {
+  if(rocks.length < 6 && started) {
     if(distance(rockPos, myShip.getPosition()) > myShip.getSize()[0]*1.5) {
       rocks.push(myRock);
     }
@@ -317,12 +311,10 @@ function animateAll() {
   for(let missile of missiles) {
     missile.update();
     missile.draw();
-    // groupCollide(rocks, missile);
   }
   for(let rock of rocks) {
     rock.update();
     rock.draw();
-    // groupCollide(missiles, rock);
   }
   for(let explosion of explosionGroup) {
     explosion.update();
@@ -330,15 +322,24 @@ function animateAll() {
   }
   if(groupCollide(rocks, myShip)) {
     lives -= 1;
-    livesContainer.innerHTML = lives;
+    livesContainer.innerHTML = "Lives: " + lives;
+  }
+  if(lives == 0) {
+    started = false;
+    rocks = new Set([]);
   }
 
-  // groupGroupCollide(rocks, missiles);
-
   score += groupGroupCollide(rocks, missiles);
-  scoreContainer.innerHTML = score;
+  scoreContainer.innerHTML = "Score: " + score;
 
   requestAnimationFrame(animateAll);
+
+  if(!started) {
+    console.log("Game over");
+    ctx.font = "40px Arial";
+    ctx.fillStyle = "white";
+    ctx.fillText("Game Over", canvas.width/2 - 100, canvas.height/2 - 20);
+  }
 }
 
 setInterval(function() {
