@@ -12,13 +12,22 @@ ul, ol {
   list-style: none;
 }
 
+.clearfix::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+.game-container {
+  position: relative;
+  width: 1250px;
+  margin: 0 auto;
+}
+
 .game-canvas {
   position: absolute;
   top: 0;
-  left: 50%;
-  -webkit-transform: translateX(-50%);
-      -ms-transform: translateX(-50%);
-          transform: translateX(-50%);
+  left: 250px;
   background-color: transparent;
 }
 
@@ -31,21 +40,42 @@ ul, ol {
 }
 
 .space-bg {
-  display: block;
-  margin: 0 auto;
+  float: right;
+}
+
+.game-info {
+  float: right;
+  width: 250px;
+  text-align: center;
 }
 
 .game-text {
-  position: absolute;
-  top: 0;
-  padding: 20px;
+  display: inline-block;
+  padding: 10px 20px 0 20px;
   font-size: 32px;
   font-weight: bold;
   color: #49ade9;
 }
-.game-text.score {
-  right: 0;
+
+.game-description {
+  padding: 20px 10px;
+  line-height: 1.3em;
+  text-align: left;
+  color: #a7a7a7;
 }
-.game-text.lives {
-  left: 0;
+.game-description p {
+  margin-bottom: 10px;
+}
+
+.btn-play {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #49ade9;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+}
+.btn-play:hover {
+  background-color: rgba(73, 173, 233, 0.8);
 }

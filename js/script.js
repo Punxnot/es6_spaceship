@@ -7,18 +7,17 @@ const shipCtx = shipCanvas.getContext("2d");
 var shipImage = document.getElementById("shipImg");
 var thrustSound = new Audio('audio/thrust_sound.mp3');
 var explosionSound = new Audio('audio/explosion_sound.mp3');
-var acc = 0.4;
-var dec = 0.95;
+const acc = 0.4;
+const dec = 0.95;
 var shipMoving = false;
 var shipRotating = false;
 var direction = "";
-var times = 0;
 var angleSteps = 0.05;
 var spritePoint = 0;
 var explosionGroup = new Set([]);
 var rocks = [];
 var missiles = [];
-var started = true;
+var started = false;
 var score = 0;
 var lives = 3;
 var scoreContainer = document.getElementById("scoreContainer");
@@ -263,43 +262,61 @@ function rockSpawner() {
   }
 }
 
+function newGame() {
+  rocks = [];
+  missiles = [];
+  lives = 3;
+  score = 0;
+  started = true;
+  myShip = new Ship([canvas.width/2, canvas.height/2], [0, 0], 0 * Math.PI / 180, [90, 90]);
+}
+
 // Listen to key press
 document.addEventListener("keydown", function(e){
-  if(e.keyCode == 87){
-    if(!shipMoving) {
-      myShip.thrustersOn();
-      shipMoving = true;
+  if(started) {
+    switch(e.keyCode) {
+      case 87:
+        if(!shipMoving) {
+          myShip.thrustersOn();
+          shipMoving = true;
+        }
+        break;
+      case 65:
+        if(!shipRotating) {
+          direction = "left";
+          myShip.turnLeft();
+          shipRotating = true;
+        }
+        break;
+      case 68:
+        if(!shipRotating) {
+          direction = "right";
+          myShip.turnRight();
+          shipRotating = true;
+        }
+        break;
+      case 32:
+        myShip.shoot();
+        missileSound.play();
+        break;
     }
-  } else if(e.keyCode == 65) {
-    if(!shipRotating){
-      direction = "left";
-      myShip.turnLeft();
-      shipRotating = true;
-    }
-  } else if(e.keyCode == 68) {
-    if(!shipRotating){
-      direction = "right";
-      myShip.turnRight();
-      shipRotating = true;
-    }
-  } else if(e.keyCode == 32) {
-    myShip.shoot();
-    missileSound.play();
   }
 });
 
 document.addEventListener("keyup", function(e){
-  if(e.keyCode == 87){
-    shipMoving = false;
-    myShip.thrustersOff();
-  } else if(e.keyCode == 65) {
-    direction = "right";
-    myShip.turnRight();
-    shipRotating = false;
-  } else if(e.keyCode == 68) {
-    direction = "left";
-    myShip.turnLeft();
-    shipRotating = false;
+  if(started) {
+    if(e.keyCode == 87){
+      shipMoving = false;
+      myShip.thrustersOff();
+    } else if(e.keyCode == 65) {
+      direction = "right";
+      myShip.turnRight();
+      shipRotating = false;
+    } else if(e.keyCode == 68) {
+      direction = "left";
+      myShip.turnLeft();
+      shipRotating = false;
+    }
   }
 });
 
@@ -326,20 +343,16 @@ function animateAll() {
   }
   if(lives == 0) {
     started = false;
-    rocks = new Set([]);
+    rocks = [];
+    ctx.font = "40px Arial";
+    ctx.fillStyle = "white";
+    ctx.fillText("Game Over", canvas.width/2 - 100, canvas.height/2 - 20);
   }
 
   score += groupGroupCollide(rocks, missiles);
   scoreContainer.innerHTML = "Score: " + score;
 
   requestAnimationFrame(animateAll);
-
-  if(!started) {
-    console.log("Game over");
-    ctx.font = "40px Arial";
-    ctx.fillStyle = "white";
-    ctx.fillText("Game Over", canvas.width/2 - 100, canvas.height/2 - 20);
-  }
 }
 
 setInterval(function() {
